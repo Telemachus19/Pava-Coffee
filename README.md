@@ -64,6 +64,25 @@ erDiagram
 
 ```mermaid
 erDiagram
+  ROLES {
+    int id PK
+    string name
+    string description
+  }
+
+  USERS {
+    int id PK
+    int role_id FK
+    string name
+    string email
+    string password_hash
+    string profile_picture
+    string ext
+    string reset_token
+    timestamp reset_token_expires_at
+    timestamp created_at
+  }
+
   ROOM_TYPES {
     int id PK
     string name
@@ -94,19 +113,6 @@ erDiagram
     boolean is_available
     int category_id FK
     boolean is_deleted
-  }
-
-  USERS {
-    int id PK
-    string name
-    string email
-    string password_hash
-    string profile_picture
-    string ext
-    boolean is_admin
-    string reset_token
-    timestamp reset_token_expires_at
-    timestamp created_at
   }
 
   SESSIONS {
@@ -143,6 +149,8 @@ erDiagram
   }
 
   %% Relationships
+  ROLES ||--|{ USERS : "assigned to"
+
   ROOM_TYPES ||--|{ ROOMS : "defines"
   ROOMS ||--o{ SESSIONS : "hosts"
   USERS ||--o{ SESSIONS : "owns (host)"
