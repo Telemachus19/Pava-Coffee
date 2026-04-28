@@ -105,16 +105,14 @@ _Usesr Story:_ As a _Customer_, I want to securely log into the cafeteria system
 - **Check-Out Action:** A permanent "Check-Out / Pay" button is visible in the session UI.
 - **Time Calculation (BE):** Captures `Leave_Time` upon click.
   - Formula: `Total Time = Leave_Time - Join_Time`
-  - Formula: `Billable Time = Total Time - 60 minutes` (If $\le$ 0, Time Cost = 0).
+  - Formula: `Billable Time = Total Time - Room_base_minutes` (If $\le$ 0, Time Cost = 0).
 - **Proration:** Backend calculates the cost of the _Billable Time_ based on the room's hourly rate.
 - **Invoice Display:** UI renders the final receipt: `(Food Total) + (Extra Time Total) = Final Amount Due`.
 - **Host Override:** The Host has a master "End Session for All" button that forces a `Leave_Time` timestamp on all remaining guests to close the room.
 
 ### Edge Cases:
 
-- A guest leaves under 60 minutes (System calculates extra time cost strictly as 0; they only pay for food).
-
----
+- A guest leaves under `Room_base_minutes` (System calculates extra time cost strictly as 0; they only pay for food).
 
 ## Order Dashboard (Current & Historical)
 
