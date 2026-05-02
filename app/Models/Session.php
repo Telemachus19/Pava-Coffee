@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Session extends Model
@@ -34,6 +35,12 @@ class Session extends Model
     public function guests(): HasMany
     {
         return $this->hasMany(SessionGuest::class);
+    }
+
+    public function attendingUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'session_guests')
+            ->withPivot(['join_time', 'leave_time']);
     }
 
     public function orders(): HasMany
