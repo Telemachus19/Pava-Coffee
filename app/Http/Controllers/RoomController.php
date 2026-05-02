@@ -53,6 +53,8 @@ class RoomController extends Controller
 
             $room->update(['current_status' => 'occupied']);
 
+            \App\Events\RoomStatusChanged::dispatch($room->id, 'occupied');
+
             $startTime = now();
             $baseMinutes = $room->roomType->free_base_minutes;
             $endTime = $startTime->copy()->addMinutes($baseMinutes);
