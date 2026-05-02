@@ -14,12 +14,18 @@ class Room extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'store_id',
         'room_number',
         'room_type_id',
         'max_capacity',
         'current_status',
         'is_deleted',
     ];
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     public function roomType(): BelongsTo
     {
