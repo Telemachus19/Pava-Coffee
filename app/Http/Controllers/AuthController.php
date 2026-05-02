@@ -2,16 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ResetPasswordMail;
+use App\Models\Role;
 use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
+    public function showRegister()
+    {
+        return Inertia::render('Auth/Register');
+    }
+
+    public function storeRegistration(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $role = Role::firstOrCreate(['name' => 'Guest'], ['description' => 'Room guest']);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
+            'role_id' => $role->id,
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->intended('/');
+    }
+
     public function create()
     {
         return Inertia::render('Auth/Login');
@@ -61,15 +91,27 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email'],
         ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        $user = User::where('email', $request->email)->first();
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+        if (! $user) {
+            // We do not want to reveal if a user exists or not
+            return back()->with('status', 'If an account with that email exists, we have sent a password reset link.');
         }
 
-        return back()->withErrors([
-            'email' => __($status),
+        $token = Str::random(60);
+        $user->forceFill([
+            'reset_token' => hash('sha256', $token),
+            'reset_token_expires_at' => now()->addMinutes(60),
+        ])->save();
+
+        $resetUrl = route('password.reset', [
+            'token' => $token,
+            'email' => $user->email,
         ]);
+
+        Mail::to($user->email)->send(new ResetPasswordMail($resetUrl));
+
+        return back()->with('status', 'If an account with that email exists, we have sent a password reset link.');
     }
 
     public function resetPassword(Request $request, string $token)
@@ -93,23 +135,26 @@ class AuthController extends Controller
             ],
         ]);
 
-        $status = Password::reset(
-            $validated,
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password_hash' => $password,
-                ])->save();
+        $user = User::where('email', $validated['email'])->first();
 
-                event(new PasswordReset($user));
-            }
-        );
-
-        if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('status', __($status));
+        if (! $user) {
+            return back()->withErrors(['email' => __('passwords.user')]);
         }
 
-        return back()->withErrors([
-            'email' => __($status),
-        ]);
+        if (! $user->reset_token || ! hash_equals($user->reset_token, hash('sha256', $validated['token']))) {
+            return back()->withErrors(['email' => __('passwords.token')]);
+        }
+
+        if (! $user->reset_token_expires_at || $user->reset_token_expires_at->isPast()) {
+            return back()->withErrors(['email' => __('passwords.token')]);
+        }
+
+        $user->forceFill([
+            'password_hash' => Hash::make($validated['password']),
+            'reset_token' => null,
+            'reset_token_expires_at' => null,
+        ])->save();
+
+        return redirect()->route('login')->with('status', __('passwords.reset'));
     }
 }

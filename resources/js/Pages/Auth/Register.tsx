@@ -1,27 +1,30 @@
 import { Head, Link, useForm } from "@inertiajs/react";
+import React from "react";
+
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
 import { Label } from "@/components/retroui/Label";
 import { cn } from "@/lib/utils";
 
-export default function Login() {
+export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
+        name: "",
         email: "",
         password: "",
-        remember: false,
+        password_confirmation: "",
     });
 
     const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post("/login", {
-            onFinish: () => reset("password"),
+        post("/register", {
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Register" />
 
             <div className="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-secondary-background">
                 <Link href="/" className="mb-8 group">
@@ -35,15 +38,44 @@ export default function Login() {
                 <Card className="w-full sm:max-w-md bg-secondary-background border-2 border-border rounded-base shadow-shadow">
                     <Card.Header className="space-y-1">
                         <Card.Title className="text-3xl font-heading uppercase italic">
-                            Welcome back
+                            Create Account
                         </Card.Title>
                         <Card.Description className="text-foreground/80 font-base">
-                            Enter your credentials to access your account.
+                            Enter your details to register for a new account.
                         </Card.Description>
                     </Card.Header>
 
                     <Card.Content>
                         <form onSubmit={submit} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label
+                                    htmlFor="name"
+                                    className="font-heading text-lg"
+                                >
+                                    Name
+                                </Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    name="name"
+                                    value={data.name}
+                                    className={cn(
+                                        "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
+                                        errors.name && "bg-red-50",
+                                    )}
+                                    autoComplete="name"
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
+                                    required
+                                />
+                                {errors.name && (
+                                    <p className="text-sm text-red-600 font-heading">
+                                        {errors.name}
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="email"
@@ -74,20 +106,12 @@ export default function Login() {
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label
-                                        htmlFor="password"
-                                        className="font-heading text-lg"
-                                    >
-                                        Password
-                                    </Label>
-                                    <Link
-                                        href="/forgot-password"
-                                        className="text-sm underline font-heading hover:text-main transition-colors"
-                                    >
-                                        Forgot?
-                                    </Link>
-                                </div>
+                                <Label
+                                    htmlFor="password"
+                                    className="font-heading text-lg"
+                                >
+                                    Password
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -97,7 +121,7 @@ export default function Login() {
                                         "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
                                         errors.password && "bg-red-50",
                                     )}
-                                    autoComplete="current-password"
+                                    autoComplete="new-password"
                                     onChange={(e) =>
                                         setData("password", e.target.value)
                                     }
@@ -110,42 +134,52 @@ export default function Login() {
                                 )}
                             </div>
 
-                            <div className="flex items-center space-x-3">
-                                <input
-                                    id="remember"
-                                    type="checkbox"
-                                    name="remember"
-                                    checked={data.remember}
-                                    onChange={(e) =>
-                                        setData("remember", e.target.checked)
-                                    }
-                                    className="w-6 h-6 rounded-base border-2 border-border text-main focus:ring-0 cursor-pointer accent-black"
-                                />
+                            <div className="space-y-2">
                                 <Label
-                                    htmlFor="remember"
-                                    className="font-heading cursor-pointer select-none"
+                                    htmlFor="password_confirmation"
+                                    className="font-heading text-lg"
                                 >
-                                    Keep me logged in
+                                    Confirm Password
                                 </Label>
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    value={data.password_confirmation}
+                                    className={cn(
+                                        "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
+                                        errors.password_confirmation && "bg-red-50",
+                                    )}
+                                    autoComplete="new-password"
+                                    onChange={(e) =>
+                                        setData("password_confirmation", e.target.value)
+                                    }
+                                    required
+                                />
+                                {errors.password_confirmation && (
+                                    <p className="text-sm text-red-600 font-heading">
+                                        {errors.password_confirmation}
+                                    </p>
+                                )}
                             </div>
 
                             <Button
                                 className="w-full h-12 bg-main text-main-foreground border-2 border-border rounded-base shadow-shadow font-heading text-xl uppercase tracking-wider hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
                                 disabled={processing}
                             >
-                                {processing ? "Authenticating..." : "Sign In"}
+                                {processing ? "Creating Account..." : "Register"}
                             </Button>
                         </form>
                     </Card.Content>
 
                     <div className="flex flex-col items-center justify-center space-y-2 border-t-2 border-border pt-6 mt-4 pb-4 bg-main/5">
                         <p className="text-sm text-foreground/80 font-base">
-                            Don't have an account?{" "}
+                            Already have an account?{" "}
                             <Link
-                                href="/register"
+                                href="/login"
                                 className="underline font-heading text-foreground hover:text-main"
                             >
-                                Create one
+                                Sign in
                             </Link>
                         </p>
                     </div>

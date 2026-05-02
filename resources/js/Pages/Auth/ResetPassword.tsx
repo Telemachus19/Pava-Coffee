@@ -1,27 +1,35 @@
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
+
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
 import { Label } from "@/components/retroui/Label";
 import { cn } from "@/lib/utils";
 
-export default function Login() {
+type ResetPasswordProps = {
+    token: string;
+    email?: string;
+};
+
+export default function ResetPassword() {
+    const { token, email } = usePage<ResetPasswordProps>().props;
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: "",
+        token,
+        email: email ?? "",
         password: "",
-        remember: false,
+        password_confirmation: "",
     });
 
-    const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        post("/login", {
-            onFinish: () => reset("password"),
+    const submit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        post("/reset-password", {
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Reset password" />
 
             <div className="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-secondary-background">
                 <Link href="/" className="mb-8 group">
@@ -35,10 +43,10 @@ export default function Login() {
                 <Card className="w-full sm:max-w-md bg-secondary-background border-2 border-border rounded-base shadow-shadow">
                     <Card.Header className="space-y-1">
                         <Card.Title className="text-3xl font-heading uppercase italic">
-                            Welcome back
+                            Create a new password
                         </Card.Title>
                         <Card.Description className="text-foreground/80 font-base">
-                            Enter your credentials to access your account.
+                            Choose a strong password to secure your account.
                         </Card.Description>
                     </Card.Header>
 
@@ -46,8 +54,8 @@ export default function Login() {
                         <form onSubmit={submit} className="space-y-6">
                             <div className="space-y-2">
                                 <Label
-                                    htmlFor="email"
                                     className="font-heading text-lg"
+                                    htmlFor="email"
                                 >
                                     Email
                                 </Label>
@@ -60,34 +68,24 @@ export default function Login() {
                                         "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
                                         errors.email && "bg-red-50",
                                     )}
-                                    autoComplete="username"
-                                    onChange={(e) =>
-                                        setData("email", e.target.value)
+                                    onChange={(event) =>
+                                        setData("email", event.target.value)
                                     }
-                                    required
+                                    autoComplete="email"
                                 />
-                                {errors.email && (
+                                {errors.email ? (
                                     <p className="text-sm text-red-600 font-heading">
                                         {errors.email}
                                     </p>
-                                )}
+                                ) : null}
                             </div>
-
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label
-                                        htmlFor="password"
-                                        className="font-heading text-lg"
-                                    >
-                                        Password
-                                    </Label>
-                                    <Link
-                                        href="/forgot-password"
-                                        className="text-sm underline font-heading hover:text-main transition-colors"
-                                    >
-                                        Forgot?
-                                    </Link>
-                                </div>
+                                <Label
+                                    className="font-heading text-lg"
+                                    htmlFor="password"
+                                >
+                                    New password
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -97,57 +95,67 @@ export default function Login() {
                                         "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
                                         errors.password && "bg-red-50",
                                     )}
-                                    autoComplete="current-password"
-                                    onChange={(e) =>
-                                        setData("password", e.target.value)
+                                    onChange={(event) =>
+                                        setData("password", event.target.value)
                                     }
-                                    required
+                                    autoComplete="new-password"
                                 />
-                                {errors.password && (
+                                {errors.password ? (
                                     <p className="text-sm text-red-600 font-heading">
                                         {errors.password}
                                     </p>
-                                )}
+                                ) : null}
                             </div>
-
-                            <div className="flex items-center space-x-3">
-                                <input
-                                    id="remember"
-                                    type="checkbox"
-                                    name="remember"
-                                    checked={data.remember}
-                                    onChange={(e) =>
-                                        setData("remember", e.target.checked)
-                                    }
-                                    className="w-6 h-6 rounded-base border-2 border-border text-main focus:ring-0 cursor-pointer accent-black"
-                                />
+                            <div className="space-y-2">
                                 <Label
-                                    htmlFor="remember"
-                                    className="font-heading cursor-pointer select-none"
+                                    className="font-heading text-lg"
+                                    htmlFor="password_confirmation"
                                 >
-                                    Keep me logged in
+                                    Confirm password
                                 </Label>
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    value={data.password_confirmation}
+                                    className={cn(
+                                        "rounded-base border-2 border-border focus-visible:ring-0 focus-visible:bg-main/10 bg-white h-12 text-black font-base",
+                                        errors.password_confirmation && "bg-red-50",
+                                    )}
+                                    onChange={(event) =>
+                                        setData(
+                                            "password_confirmation",
+                                            event.target.value,
+                                        )
+                                    }
+                                    autoComplete="new-password"
+                                />
+                                {errors.password_confirmation ? (
+                                    <p className="text-sm text-red-600 font-heading">
+                                        {errors.password_confirmation}
+                                    </p>
+                                ) : null}
                             </div>
-
                             <Button
+                                type="submit"
                                 className="w-full h-12 bg-main text-main-foreground border-2 border-border rounded-base shadow-shadow font-heading text-xl uppercase tracking-wider hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all"
                                 disabled={processing}
                             >
-                                {processing ? "Authenticating..." : "Sign In"}
+                                {processing ? "Updating..." : "Reset password"}
                             </Button>
                         </form>
                     </Card.Content>
 
                     <div className="flex flex-col items-center justify-center space-y-2 border-t-2 border-border pt-6 mt-4 pb-4 bg-main/5">
-                        <p className="text-sm text-foreground/80 font-base">
-                            Don't have an account?{" "}
-                            <Link
-                                href="/register"
-                                className="underline font-heading text-foreground hover:text-main"
-                            >
-                                Create one
-                            </Link>
-                        </p>
+                        <Link
+                            href="/login"
+                            className="underline font-heading text-foreground hover:text-main text-sm"
+                        >
+                            Back to login
+                        </Link>
+                        <span className="text-xs text-foreground/60 font-base">
+                            Tokens expire after 60 minutes.
+                        </span>
                     </div>
                 </Card>
             </div>
