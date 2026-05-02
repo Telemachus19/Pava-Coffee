@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ResetPasswordMail;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,33 @@ use Inertia\Inertia;
 
 class AuthController extends Controller
 {
+    public function showRegister()
+    {
+        return Inertia::render('Auth/Register');
+    }
+
+    public function storeRegistration(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $role = Role::firstOrCreate(['name' => 'Guest'], ['description' => 'Room guest']);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
+            'role_id' => $role->id,
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->intended('/');
+    }
+
     public function create()
     {
         return Inertia::render('Auth/Login');
