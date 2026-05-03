@@ -39,12 +39,6 @@ class OrderController extends Controller
 
     public function store(Request $request, Session $session)
     {
-        \Illuminate\Support\Facades\Log::info('Order attempt', [
-            'user' => Auth::id(),
-            'session' => $session->id,
-            'items' => $request->input('items')
-        ]);
-
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
@@ -56,20 +50,21 @@ class OrderController extends Controller
             return back()->withErrors(['session' => 'Session has expired.']);
         }
 
-        // Verify user is checked in
-        $isGuest = $session->guests()
+        // Verify user is checked in and get their active 'stay' record
+        $guest = $session->guests()
             ->where('user_id', Auth::id())
             ->whereNull('leave_time')
-            ->exists();
+            ->first();
 
-        if (!$isGuest && $session->host_id !== Auth::id()) {
+        if (!$guest && $session->host_id !== Auth::id()) {
             return back()->withErrors(['session' => 'You are not checked into this session.']);
         }
 
-        return DB::transaction(function () use ($validated, $session) {
+        return DB::transaction(function () use ($validated, $session, $guest) {
             $order = Order::create([
                 'session_id' => $session->id,
                 'user_id' => Auth::id(),
+                'session_guest_id' => $guest?->id, // If host is not a guest, this might be null, but we usually make them a guest.
                 'status' => 'Processing',
                 'ordered_at' => now(),
             ]);

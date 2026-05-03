@@ -16,6 +16,7 @@ class Order extends Model
     protected $fillable = [
         'session_id',
         'user_id',
+        'session_guest_id',
         'status',
         'ordered_at',
     ];
