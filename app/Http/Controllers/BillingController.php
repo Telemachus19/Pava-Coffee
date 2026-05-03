@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Session;
 use App\Models\SessionGuest;
 use Illuminate\Http\Request;
@@ -15,10 +16,10 @@ class BillingController extends Controller
     {
         $user = Auth::user();
         
-        // Find the user's guest record for this session
+        // Find the user's guest record for this session (active or past)
         $guest = SessionGuest::where('session_id', $session->id)
             ->where('user_id', $user->id)
-            ->whereNull('leave_time')
+            ->latest('id')
             ->first();
 
         if (!$guest && $session->host_id !== $user->id) {
@@ -26,11 +27,13 @@ class BillingController extends Controller
         }
 
         $invoice = $this->calculateInvoice($session, $user->id);
+        $isHistorical = $guest && $guest->leave_time !== null;
 
         return Inertia::render('Session/Checkout', [
             'session' => $session->load(['room.roomType', 'room.store']),
             'invoice' => $invoice,
             'is_host' => $session->host_id === $user->id,
+            'is_historical' => $isHistorical,
         ]);
     }
 
@@ -94,7 +97,7 @@ class BillingController extends Controller
         $billableMinutes = max(0, $totalMinutes - $freeMinutes);
         
         $hourlyRate = (float) $session->room->roomType->hourly_rate;
-        $timeCost = round(($billableMinutes / 60) * $hourlyRate, 2);
+        $timeCost = (float) round(($billableMinutes / 60) * $hourlyRate, 2);
 
         $orders = Order::where('session_guest_id', $guest?->id)
             ->whereIn('status', ['Done', 'Out for Delivery'])

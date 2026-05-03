@@ -29,12 +29,7 @@ class InvitationController extends Controller
 
         // Check each user for active sessions
         $results = $users->map(function ($user) use ($session) {
-            $isActive = Session::where('status', 'active')
-                ->whereHas('guests', function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->whereNull('leave_time');
-                })
-                ->exists();
+            $isActive = $user->hasActiveSession();
             
             $isInvited = Invitation::where('session_id', $session->id)
                 ->where('user_id', $user->id)
@@ -104,6 +99,10 @@ class InvitationController extends Controller
 
         if ($invitation->user_id !== Auth::id()) {
             abort(403);
+        }
+
+        if ($validated['status'] === 'accepted' && Auth::user()->hasActiveSession()) {
+            return back()->withErrors(['user' => 'You are already in an active session.']);
         }
 
         $invitation->update(['status' => $validated['status']]);

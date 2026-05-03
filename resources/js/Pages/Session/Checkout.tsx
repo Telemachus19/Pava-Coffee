@@ -39,10 +39,11 @@ interface CheckoutProps {
     session: Session;
     invoice: Invoice;
     is_host: boolean;
+    is_historical: boolean;
 }
 
 export default function Checkout() {
-    const { session, invoice, is_host } = usePage<CheckoutProps>().props;
+    const { session, invoice, is_host, is_historical } = usePage<CheckoutProps>().props;
     const { post, processing } = useForm({});
 
     const handlePayment = () => {
@@ -57,25 +58,39 @@ export default function Checkout() {
 
     return (
         <>
-            <Head title="Final Receipt" />
+            <Head title={is_historical ? "Stay Receipt" : "Final Receipt"} />
             
             <div className="min-h-screen bg-secondary-background p-6">
                 <header className="max-w-3xl mx-auto mb-8 flex justify-between items-center">
                     <Link href="/" className="font-heading text-2xl tracking-tighter text-main italic uppercase">
                         PAVA COFFEE
                     </Link>
-                    <Badge variant="outline" className="bg-white border-2 border-border font-heading text-xs">
-                        RECEIPT #S-{session.id}
-                    </Badge>
+                    <div className="flex gap-4 items-center">
+                        {is_historical && (
+                            <Link href={route('stays.index')} className="bg-white border-2 border-border px-4 py-1 rounded-base font-heading shadow-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-sm uppercase">
+                                Back to Stays
+                            </Link>
+                        )}
+                        <Badge variant="outline" className="bg-white border-2 border-border font-heading text-xs">
+                            RECEIPT #S-{session.id}
+                        </Badge>
+                    </div>
                 </header>
 
                 <main className="max-w-3xl mx-auto">
                     <Card className="border-4 border-border shadow-shadow overflow-hidden bg-white">
                         {/* Receipt Header */}
                         <div className="p-8 border-b-4 border-border border-dashed text-center space-y-2">
-                            <h1 className="text-4xl font-heading uppercase italic">Final Receipt</h1>
+                            <h1 className="text-4xl font-heading uppercase italic">
+                                {is_historical ? "Stay Receipt" : "Final Receipt"}
+                            </h1>
                             <p className="font-base text-foreground/60">{session.room.store.name} • Room #{session.room.room_number}</p>
-                            <p className="font-base text-xs text-foreground/40">{new Date().toLocaleString()}</p>
+                            <p className="font-base text-xs text-foreground/40">
+                                {is_historical 
+                                    ? `Stayed on ${new Date(invoice.time_details.join_time).toLocaleDateString()}`
+                                    : new Date().toLocaleString()
+                                }
+                            </p>
                         </div>
 
                         <div className="p-8 space-y-10">
@@ -120,23 +135,39 @@ export default function Checkout() {
                             </section>
 
                             {/* Grand Total */}
-                            <section className="bg-main/10 p-6 border-4 border-main rounded-base space-y-4">
+                            <section className={cn(
+                                "p-6 border-4 rounded-base space-y-4",
+                                is_historical ? "border-green-500 bg-green-50" : "border-main bg-main/10"
+                            )}>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-2xl font-heading uppercase italic">Total Due</span>
-                                    <span className="text-5xl font-heading text-main">${invoice.grand_total.toFixed(2)}</span>
+                                    <span className="text-2xl font-heading uppercase italic">
+                                        {is_historical ? "Total Paid" : "Total Due"}
+                                    </span>
+                                    <span className={cn(
+                                        "text-5xl font-heading",
+                                        is_historical ? "text-green-600" : "text-main"
+                                    )}>
+                                        ${invoice.grand_total.toFixed(2)}
+                                    </span>
                                 </div>
-                                <Button 
-                                    className="w-full h-16 text-2xl uppercase tracking-widest shadow-shadow"
-                                    onClick={handlePayment}
-                                    disabled={processing}
-                                >
-                                    {processing ? "Processing..." : "Confirm & Pay"}
-                                </Button>
+                                {!is_historical ? (
+                                    <Button 
+                                        className="w-full h-16 text-2xl uppercase tracking-widest shadow-shadow"
+                                        onClick={handlePayment}
+                                        disabled={processing}
+                                    >
+                                        {processing ? "Processing..." : "Confirm & Pay"}
+                                    </Button>
+                                ) : (
+                                    <div className="w-full py-4 border-2 border-green-500 border-dashed text-center font-heading text-green-600 uppercase tracking-widest">
+                                        Payment Completed
+                                    </div>
+                                )}
                             </section>
                         </div>
 
                         {/* Host Controls */}
-                        {is_host && (
+                        {is_host && !is_historical && (
                             <div className="p-8 bg-gray-50 border-t-4 border-border space-y-4">
                                 <p className="text-xs font-base text-center text-foreground/50 uppercase">Host Administrative Actions</p>
                                 <Button 

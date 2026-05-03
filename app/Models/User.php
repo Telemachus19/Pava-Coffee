@@ -76,4 +76,16 @@ class User extends Authenticatable
     {
         return $this->password_hash;
     }
+
+    public function hasActiveSession(): bool
+    {
+        return Session::where('status', 'active')
+            ->where(function ($query) {
+                $query->where('host_id', $this->id)
+                    ->orWhereHas('guests', function ($q) {
+                        $q->where('user_id', $this->id)
+                          ->whereNull('leave_time');
+                    });
+            })->exists();
+    }
 }
