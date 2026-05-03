@@ -16,9 +16,17 @@ class Order extends Model
     protected $fillable = [
         'session_id',
         'user_id',
+        'session_guest_id',
         'status',
         'ordered_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'ordered_at' => 'datetime',
+        ];
+    }
 
     public function session(): BelongsTo
     {

@@ -74,10 +74,20 @@ class BillingController extends Controller
     {
         $guest = SessionGuest::where('session_id', $session->id)
             ->where('user_id', $userId)
+            ->whereNull('leave_time')
             ->first();
 
+        // For historical view, find by specific guest record if we can pass it, 
+        // otherwise default to most recent for this user in this session.
+        if (!$guest) {
+            $guest = SessionGuest::where('session_id', $session->id)
+                ->where('user_id', $userId)
+                ->latest('id')
+                ->first();
+        }
+
         $startTime = $guest ? $guest->join_time : $session->start_time;
-        $leaveTime = now(); // For calculation purposes before actual update
+        $leaveTime = $guest && $guest->leave_time ? $guest->leave_time : now();
 
         $totalMinutes = $startTime->diffInMinutes($leaveTime);
         $freeMinutes = $session->room->roomType->free_base_minutes;
@@ -86,8 +96,7 @@ class BillingController extends Controller
         $hourlyRate = (float) $session->room->roomType->hourly_rate;
         $timeCost = round(($billableMinutes / 60) * $hourlyRate, 2);
 
-        $orders = $session->orders()
-            ->where('user_id', $userId)
+        $orders = Order::where('session_guest_id', $guest?->id)
             ->whereIn('status', ['Done', 'Out for Delivery'])
             ->with('items.product')
             ->get();

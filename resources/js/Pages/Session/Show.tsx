@@ -144,6 +144,22 @@ export default function Show() {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [orders, setOrders] = useState<Order[]>(session.orders);
+
+    useEffect(() => {
+        // @ts-ignore
+        const channel = window.Echo.channel('admin.orders')
+            .listen('.order.status.updated', (e: { orderId: number, status: string }) => {
+                setOrders(currentOrders => currentOrders.map(order => 
+                    order.id === e.orderId ? { ...order, status: e.status } : order
+                ));
+            });
+
+        return () => {
+            // @ts-ignore
+            window.Echo.leaveChannel('admin.orders');
+        };
+    }, []);
 
     const privacyForm = useForm({
         privacy: session.privacy
@@ -419,9 +435,9 @@ export default function Show() {
                         <Card className="p-6 border-4 border-border shadow-shadow bg-white space-y-6">
                             <h2 className="text-2xl font-heading uppercase italic border-b-2 border-border pb-2">Your Active Orders</h2>
                             <div className="space-y-4">
-                                {session.orders && session.orders.length > 0 ? (
+                                {orders && orders.length > 0 ? (
                                     <div className="grid gap-4">
-                                        {session.orders.map((order) => (
+                                        {orders.map((order) => (
                                             <div key={order.id} className="p-3 border-2 border-border rounded-base bg-main/5 flex justify-between items-center">
                                                 <div>
                                                     <p className="font-heading text-xs uppercase opacity-50">Order #{order.id}</p>

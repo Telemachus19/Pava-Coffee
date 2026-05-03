@@ -32,6 +32,11 @@ class SessionGuest extends Model
         return $this->belongsTo(Session::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
