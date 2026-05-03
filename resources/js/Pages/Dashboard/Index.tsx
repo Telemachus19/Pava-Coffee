@@ -50,8 +50,32 @@ interface DashboardProps {
 }
 
 export default function Dashboard() {
-    const { activeOrders, history, filters } = usePage<DashboardProps>().props;
+    const { activeOrders: initialActiveOrders, history, filters } = usePage<DashboardProps>().props;
+    const [activeOrders, setActiveOrders] = React.useState<ActiveOrder[]>(initialActiveOrders);
     const { post, processing } = useForm();
+
+    React.useEffect(() => {
+        setActiveOrders(initialActiveOrders);
+    }, [initialActiveOrders]);
+
+    React.useEffect(() => {
+        // @ts-ignore
+        const channel = window.Echo.channel('admin.orders')
+            .listen('.order.status.updated', (e: { orderId: number, status: string }) => {
+                setActiveOrders(currentOrders => {
+                    const newOrders = currentOrders.map(order => 
+                        order.id === e.orderId ? { ...order, status: e.status } : order
+                    );
+                    // Filter out completed orders from the active view
+                    return newOrders.filter(o => ['Processing', 'Out for Delivery'].includes(o.status));
+                });
+            });
+
+        return () => {
+            // @ts-ignore
+            window.Echo.leaveChannel('admin.orders');
+        };
+    }, []);
 
     const handleCancel = (orderId: number) => {
         if (confirm("Are you sure you want to cancel this order?")) {

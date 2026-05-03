@@ -127,7 +127,7 @@ export default function Menu() {
                                                 {product.image ? (
                                                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <span className="text-3xl">☕</span>
+                                                    <span className="text-2xl font-heading text-foreground/20 italic uppercase tracking-tighter">no img</span>
                                                 )}
                                             </div>
                                             <div className="flex-1 flex flex-col justify-between py-1">
@@ -159,9 +159,9 @@ export default function Menu() {
                                 
                                 <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
                                     {cart.length === 0 ? (
-                                        <div className="text-center py-12 space-y-2 opacity-40 italic">
-                                            <p className="text-4xl">🛒</p>
-                                            <p className="font-base">Your tab is empty.</p>
+                                        <div className="text-center py-12 space-y-2 opacity-40 italic font-base">
+                                            <p className="font-heading uppercase text-xs">Tab Empty</p>
+                                            <p className="text-sm">Your tab is empty.</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
