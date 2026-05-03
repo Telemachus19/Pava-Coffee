@@ -9,15 +9,15 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\BillingController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StayController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 
 Route::get('/', [RoomController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/orders/{order}/cancel', [DashboardController::class, 'cancelOrder'])->name('orders.cancel');
+    Route::get('/stays', [StayController::class, 'index'])->name('stays.index');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 
     Route::post('/reserve', [RoomController::class, 'reserve'])->name('room.reserve');
     Route::get('/session/{session}', function (\App\Models\Session $session) {
@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pending-invitations', [InvitationController::class, 'pendingInvitations'])->name('invitations.pending');
 
     // Ordering
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/sessions/{session}/menu', [OrderController::class, 'menu'])->name('session.menu');
     Route::post('/sessions/{session}/order', [OrderController::class, 'store'])->name('order.store');
 

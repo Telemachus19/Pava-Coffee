@@ -13,6 +13,18 @@ use Inertia\Inertia;
 
 class OrderController extends Controller
 {
+    public function index(Request $request)
+    {
+        $orders = Order::with(['items.product', 'session.room.store'])
+            ->where('user_id', Auth::id())
+            ->orderBy('ordered_at', 'desc')
+            ->paginate(15);
+
+        return Inertia::render('Order/Index', [
+            'orders' => $orders,
+        ]);
+    }
+
     public function menu(Session $session)
     {
         // Ensure user is part of the session
@@ -35,6 +47,21 @@ class OrderController extends Controller
                 $query->where('is_available', true)->where('is_deleted', false);
             }])->where('is_deleted', false)->get(),
         ]);
+    }
+
+    public function cancel(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->status !== 'Processing') {
+            return back()->with('error', 'Only orders in "Processing" status can be cancelled.');
+        }
+
+        $order->update(['status' => 'Cancelled']);
+
+        return back()->with('status', 'Order cancelled successfully.');
     }
 
     public function store(Request $request, Session $session)

@@ -42,6 +42,10 @@ class RoomController extends Controller
             'room_id' => ['required', 'exists:rooms,id'],
         ]);
 
+        if ($request->user()->hasActiveSession()) {
+            return back()->withErrors(['user' => 'You are already in an active session.']);
+        }
+
         return DB::transaction(function () use ($validated, $request) {
             $room = Room::where('id', $validated['room_id'])
                 ->lockForUpdate()
