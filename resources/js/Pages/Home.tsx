@@ -124,6 +124,18 @@ export default function Home() {
                                     Hello, {auth.user.name}
                                 </span>
                                 <Link
+                                    href={route('stays.index')}
+                                    className="bg-white border-2 border-border px-4 py-1 rounded-base font-heading shadow-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-sm uppercase"
+                                >
+                                    Stay History
+                                </Link>
+                                <Link
+                                    href={route('orders.index')}
+                                    className="bg-white border-2 border-border px-4 py-1 rounded-base font-heading shadow-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-sm uppercase"
+                                >
+                                    My Orders
+                                </Link>
+                                <Link
                                     href="/logout"
                                     method="post"
                                     as="button"
