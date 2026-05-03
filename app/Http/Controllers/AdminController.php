@@ -83,7 +83,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|string',
+            'image' => 'nullable|string|max:2048',
             'is_available' => 'boolean',
         ]);
 
