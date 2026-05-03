@@ -112,6 +112,14 @@ export default function Home() {
                     <div className="flex items-center gap-4">
                         {auth.user ? (
                             <div className="flex items-center gap-4">
+                                {auth.user.role?.name === 'Admin' && (
+                                    <Link
+                                        href={route('admin.dashboard')}
+                                        className="bg-black text-white border-2 border-border px-4 py-1 rounded-base font-heading shadow-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-sm uppercase"
+                                    >
+                                        Admin
+                                    </Link>
+                                )}
                                 <span className="font-heading text-main-foreground hidden sm:inline">
                                     Hello, {auth.user.name}
                                 </span>
