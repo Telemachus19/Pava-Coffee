@@ -5,10 +5,13 @@
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "jsx": "react-jsx",
-        "baseUrl": ".",
         "paths": {
-            "@/*": ["resources/js/*"]
+            "@/*": ["./resources/js/*"],
+            "@/components/*": ["./resources/js/components/*"],
+            "@/components/ui/*": ["./resources/js/components/ui/*"],
+            "@/lib/*": ["./resources/js/lib/*"]
         },
+        "types": ["vite/client"],
         "allowJs": true,
         "noEmit": true,
         "resolveJsonModule": true,

@@ -37,7 +37,11 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            'auth' => [
+                'user' => $request->user(),
+            ],
+            'server_time' => now()->toIso8601String(),
+            'status' => session('status'),
         ];
     }
 }

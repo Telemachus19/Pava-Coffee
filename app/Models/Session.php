@@ -20,7 +20,16 @@ class Session extends Model
         'start_time',
         'base_end_time',
         'status',
+        'privacy',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'start_time' => 'datetime',
+            'base_end_time' => 'datetime',
+        ];
+    }
 
     public function room(): BelongsTo
     {
@@ -46,5 +55,10 @@ class Session extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 }

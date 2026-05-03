@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Session;
+use App\Models\Store;
 use App\Models\SessionGuest;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -31,6 +32,11 @@ class DatabaseSeeder extends Seeder
             Role::create(['name' => 'Staff', 'description' => 'Operations staff']),
         ]);
 
+        $stores = collect([
+            Store::create(['name' => 'Pava Coffee - Downtown', 'address' => '123 Main St']),
+            Store::create(['name' => 'Pava Coffee - Westside', 'address' => '456 West Ave']),
+        ]);
+
         $users = User::factory()
             ->count(12)
             ->state(fn () => ['role_id' => $roles->random()->id])
@@ -42,15 +48,26 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $roomTypes = RoomType::factory()->count(3)->create();
+        $roomTypes = collect([
+            RoomType::create(['name' => 'Single Pod', 'hourly_rate' => 12, 'free_base_minutes' => 30]),
+            RoomType::create(['name' => 'Standard Room', 'hourly_rate' => 20, 'free_base_minutes' => 60]),
+            RoomType::create(['name' => 'Large Suite', 'hourly_rate' => 45, 'free_base_minutes' => 60]),
+            RoomType::create(['name' => 'Conference Hall', 'hourly_rate' => 120, 'free_base_minutes' => 0]),
+        ]);
+
         $rooms = Room::factory()
-            ->count(8)
-            ->state(fn () => ['room_type_id' => $roomTypes->random()->id])
+            ->count(24)
+            ->state(fn () => [
+                'room_type_id' => $roomTypes->random()->id,
+                'store_id' => $stores->random()->id,
+                'max_capacity' => fake()->randomElement([1, 2, 4, 8, 12, 20]),
+                'current_status' => 'available',
+            ])
             ->create();
 
-        $categories = Category::factory()->count(4)->create();
+        $categories = Category::factory()->count(5)->create();
         $products = Product::factory()
-            ->count(12)
+            ->count(25)
             ->state(fn () => ['category_id' => $categories->random()->id])
             ->create();
 
