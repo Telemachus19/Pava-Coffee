@@ -84,6 +84,8 @@ class OrderController extends Controller
                 ]);
             }
 
+            \App\Events\OrderPlaced::dispatch($order);
+
             return redirect()->route('session.show', $session->id)->with('status', 'Order placed successfully!');
         });
     }

@@ -20,6 +20,13 @@ class Order extends Model
         'ordered_at',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'ordered_at' => 'datetime',
+        ];
+    }
+
     public function session(): BelongsTo
     {
         return $this->belongsTo(Session::class);
